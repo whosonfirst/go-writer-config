@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sfomuseum/runtimevar"
-	wof_writer "github.com/whosonfirst/go-writer/v2"
 	"github.com/tidwall/jsonc"
+	wof_writer "github.com/whosonfirst/go-writer/v2"
 	"net/url"
 	"strconv"
 	"strings"
@@ -30,7 +30,7 @@ type ConfigWriterOptions struct {
 	// Environment is the string label mapped to the `TargetConfig` instance used to create a new `go-writer/v2.Writer` instance.
 	Environment string
 	// Async is an optional boolean value to signal that a new asynchronous `go-writer/v2.MultiWriter` instance should be created.
-	Async       bool
+	Async bool
 }
 
 // NewConfigWriter return a new `go-writer/v2.Writer` instance derived from 'uri' which is expected to take the form of:
@@ -66,7 +66,7 @@ func NewConfigWriter(ctx context.Context, uri string) (wof_writer.Writer, error)
 	var writerConfig *WriterConfig
 
 	config_body := jsonc.ToJSON([]byte(str_config))
-	
+
 	err = json.Unmarshal(config_body, &writerConfig)
 
 	if err != nil {
