@@ -191,12 +191,12 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 
 		wr_uri, err := runtimevar.StringVar(runtime_ctx, runtimevar_uri)
 
-		// See the way we're referencing 'rt_value' rather than 'runtimevar_uri' in the errors
-		// below? That's so we don't accidently leak credentials that may have been interpolated
-		// above.
+		// See the way we're referencing 'cfg.Value' rather than 'rt_value' or 'runtimevar_uri'
+		// in the errors below? That's so we don't accidently leak credentials that may have been
+		// interpolated above.
 		
 		if err != nil {
-			return nil, fmt.Errorf("Failed to derive writer URI from '%s', %w", rt_value, err)
+			return nil, fmt.Errorf("Failed to derive writer URI from '%s', %w", cfg.Value, err)
 		}
 
 		wr_uri = strings.TrimSpace(wr_uri)
@@ -204,7 +204,7 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 		wr, err := wof_writer.NewWriter(ctx, wr_uri)
 
 		if err != nil {
-			return nil, fmt.Errorf("Failed to create writer for '%s', %w", rt_value, err)
+			return nil, fmt.Errorf("Failed to create writer for '%s', %w", cfg.Value, err)
 		}
 
 		writers = append(writers, wr)
