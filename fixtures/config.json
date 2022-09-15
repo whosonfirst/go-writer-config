@@ -1,0 +1,15 @@
+{
+    "dev": {
+	"test": [
+	    {
+		"runtimevar": "constant",
+		"value": "stdout://",
+		"label": "stdout"
+	    },
+	    {
+		"runtimevar": "constant",
+		"value": "null://"
+	    }	    	    
+	]
+    }
+}
