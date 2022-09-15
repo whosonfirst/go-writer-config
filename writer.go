@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/sfomuseum/runtimevar"
 	wof_writer "github.com/whosonfirst/go-writer/v2"
+	"github.com/tidwall/jsonc"
 	"net/url"
 	"strconv"
 	"strings"
@@ -64,7 +65,9 @@ func NewConfigWriter(ctx context.Context, uri string) (wof_writer.Writer, error)
 
 	var writerConfig *WriterConfig
 
-	err = json.Unmarshal([]byte(str_config), &writerConfig)
+	config_body := jsonc.ToJSON([]byte(str_config))
+	
+	err = json.Unmarshal(config_body, &writerConfig)
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal config provided by ?config= parameter, %w", err)
