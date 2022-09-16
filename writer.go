@@ -7,6 +7,7 @@ import (
 	"github.com/sfomuseum/runtimevar"
 	"github.com/tidwall/jsonc"
 	wof_writer "github.com/whosonfirst/go-writer/v2"
+	"log"
 	"net/url"
 	"strconv"
 	"strings"
@@ -30,7 +31,11 @@ type ConfigWriterOptions struct {
 	// Environment is the string label mapped to the `TargetConfig` instance used to create a new `go-writer/v2.Writer` instance.
 	Environment string
 	// Async is an optional boolean value to signal that a new asynchronous `go-writer/v2.MultiWriter` instance should be created.
-	Async bool
+	Async   bool
+	// Verbose is an optional boolean value to signal to the underlying `go-writer/v2.MultiWriter` instance that it should be verbose in logging events.
+	Verbose bool
+	// An options `*log.Logger` instance to pass to the underlying `go-writer/v2.MultiWriter` instance.
+	Logger  *log.Logger
 }
 
 // NewConfigWriter return a new `go-writer/v2.Writer` instance derived from 'uri' which is expected to take the form of:
@@ -122,13 +127,14 @@ func NewConfigWriterFromOptions(ctx context.Context, opts *ConfigWriterOptions) 
 		return nil, fmt.Errorf("Failed to create writers, %w", err)
 	}
 
-	var mw wof_writer.Writer
-
-	if opts.Async {
-		mw = wof_writer.NewAsyncMultiWriter(writers...)
-	} else {
-		mw = wof_writer.NewMultiWriter(writers...)
+	mw_opts := &wof_writer.MultiWriterOptions{
+		Writers: writers,
+		Async:   opts.Async,
+		Verbose: opts.Verbose,
+		Logger:  opts.Logger,
 	}
+
+	mw := wof_writer.NewMultiWriterWithOptions(mw_opts)
 
 	return mw, nil
 }
@@ -194,7 +200,7 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 		// See the way we're referencing 'cfg.Value' rather than 'rt_value' or 'runtimevar_uri'
 		// in the errors below? That's so we don't accidently leak credentials that may have been
 		// interpolated above.
-		
+
 		if err != nil {
 			return nil, fmt.Errorf("Failed to derive writer URI from '%s', %w", cfg.Value, err)
 		}

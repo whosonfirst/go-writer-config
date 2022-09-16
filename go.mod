@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/sfomuseum/runtimevar v1.0.2
 	github.com/tidwall/jsonc v0.3.2
-	github.com/whosonfirst/go-writer/v2 v2.1.0
+	github.com/whosonfirst/go-writer/v2 v2.2.0
 )
 
 require (
