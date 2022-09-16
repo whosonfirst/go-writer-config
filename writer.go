@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/sfomuseum/runtimevar"
 	"github.com/tidwall/jsonc"
-	wof_writer "github.com/whosonfirst/go-writer/v2"
+	wof_writer "github.com/whosonfirst/go-writer/v3"
 	"log"
 	"net/url"
 	"strconv"
@@ -134,7 +134,11 @@ func NewConfigWriterFromOptions(ctx context.Context, opts *ConfigWriterOptions) 
 		Logger:  opts.Logger,
 	}
 
-	mw := wof_writer.NewMultiWriterWithOptions(mw_opts)
+	mw, err := wof_writer.NewMultiWriterWithOptions(ctx, mw_opts)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create multi writer, %w", err)
+	}
 
 	return mw, nil
 }

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	wof_writer "github.com/whosonfirst/go-writer/v2"
+	wof_writer "github.com/whosonfirst/go-writer/v3"
 	"path/filepath"
 	"testing"
 )

@@ -27,27 +27,34 @@ type MultiWriter struct {
 
 // NewMultiWriter returns a Writer instance that will send all writes to each instance in 'writers'.
 // Writes happen synchronolously in the order in which the underlying Writer instances are specified.
-func NewMultiWriter(writers ...Writer) Writer {
+func NewMultiWriter(ctx context.Context, writers ...Writer) (Writer, error) {
 
 	opts := &MultiWriterOptions{
 		Writers: writers,
 	}
 
-	return NewMultiWriterWithOptions(opts)
+	return NewMultiWriterWithOptions(ctx, opts)
 }
 
 // NewMultiWriter returns a Writer instance that will send all writes to each instance in 'writers' asynchronously.
-func NewAsyncMultiWriter(writers ...Writer) Writer {
+func NewAsyncMultiWriter(ctx context.Context, writers ...Writer) (Writer, error) {
 
 	opts := &MultiWriterOptions{
 		Writers: writers,
 		Async:   true,
 	}
 
-	return NewMultiWriterWithOptions(opts)
+	return NewMultiWriterWithOptions(ctx, opts)
 }
 
-func NewMultiWriterWithOptions(opts *MultiWriterOptions) Writer {
+// NewMultiWriterWithOptions returns a Writer instance derived from 'opts'.
+func NewMultiWriterWithOptions(ctx context.Context, opts *MultiWriterOptions) (Writer, error) {
+
+	wr := &MultiWriter{
+		writers: opts.Writers,
+		async:   opts.Async,
+		verbose: opts.Verbose,
+	}
 
 	var logger *log.Logger
 
@@ -57,14 +64,13 @@ func NewMultiWriterWithOptions(opts *MultiWriterOptions) Writer {
 		logger = log.New(io.Discard, "", 0)
 	}
 
-	wr := &MultiWriter{
-		writers: opts.Writers,
-		async:   opts.Async,
-		logger:  logger,
-		verbose: opts.Verbose,
+	err := wr.SetLogger(ctx, logger)
+
+	if err != nil {
+		return nil, fmt.Errorf("Failed to set logger, %w", err)
 	}
 
-	return wr
+	return wr, nil
 }
 
 // Write copies the contents of 'fh' to each of the writers contained by 'mw' in the order they
