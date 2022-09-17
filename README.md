@@ -1,6 +1,6 @@
 # go-writer-config
 
-Go package implementing the `whosonfirst/go-writer/v2` interfaces to provide methods for creating a new `whosonfirst/go-writer/v2.MultiWriter` instance derived from a JSON-encoded config file.
+Go package implementing the `whosonfirst/go-writer/v2` interfaces to provide methods for creating a new `whosonfirst/go-writer/v3.MultiWriter` instance derived from a JSON-encoded config file.
 
 ## Documentation
 
