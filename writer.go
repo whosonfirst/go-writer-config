@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sfomuseum/runtimevar"
-	"github.com/tidwall/jsonc"
-	wof_writer "github.com/whosonfirst/go-writer/v3"
 	"log"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/sfomuseum/runtimevar"
+	"github.com/tidwall/jsonc"
+	wof_writer "github.com/whosonfirst/go-writer/v3"	
 )
 
 func init() {
