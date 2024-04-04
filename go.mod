@@ -1,11 +1,11 @@
 module github.com/whosonfirst/go-writer-config
 
-go 1.22
+go 1.22.1
 
 require (
 	github.com/sfomuseum/runtimevar v1.2.0
 	github.com/tidwall/jsonc v0.3.2
-	github.com/whosonfirst/go-writer/v3 v3.1.0
+	github.com/whosonfirst/go-writer/v3 v3.1.1
 )
 
 require (
