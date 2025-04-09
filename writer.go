@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/url"
 	"strconv"
 	"strings"
@@ -34,9 +34,6 @@ type ConfigWriterOptions struct {
 	// Async is an optional boolean value to signal that a new asynchronous `go-writer/v2.MultiWriter` instance should be created.
 	Async   bool
 	// Verbose is an optional boolean value to signal to the underlying `go-writer/v2.MultiWriter` instance that it should be verbose in logging events.
-	Verbose bool
-	// An options `*log.Logger` instance to pass to the underlying `go-writer/v2.MultiWriter` instance.
-	Logger  *log.Logger
 }
 
 // NewConfigWriter return a new `go-writer/v2.Writer` instance derived from 'uri' which is expected to take the form of:
@@ -110,37 +107,48 @@ func NewConfigWriter(ctx context.Context, uri string) (wof_writer.Writer, error)
 // NewConfigWriterFromOptions return a new `go-writer/v2.Writer` instance derived from 'opts'.
 func NewConfigWriterFromOptions(ctx context.Context, opts *ConfigWriterOptions) (wof_writer.Writer, error) {
 
+	logger := slog.Default()
+	logger = logger.With("environment", opts.Environment)
+	logger = logger.With("target", opts.Target)	
+	
 	cfg, ok := opts.Config.Target(opts.Environment)
 
 	if !ok {
+		logger.Error("Failed to derive target for enviromment.")
 		return nil, fmt.Errorf("Invalid environment")
 	}
 
 	runtimevar_configs, ok := cfg.RuntimevarConfigs(opts.Target)
 
 	if !ok {
+		logger.Error("Failed to derive config(s) from target.")
 		return nil, fmt.Errorf("Invalid target")
 	}
 
+	logger.Debug("Create writers.")
+	
 	writers, err := createWriters(ctx, runtimevar_configs, opts.Exclude)
 
 	if err != nil {
+		logger.Error("Failed to create writers.", "error", err)
 		return nil, fmt.Errorf("Failed to create writers, %w", err)
 	}
 
+	logger.Debug("Create multi writer.", "count", len(writers))
+	
 	mw_opts := &wof_writer.MultiWriterOptions{
 		Writers: writers,
 		Async:   opts.Async,
-		Verbose: opts.Verbose,
-		Logger:  opts.Logger,
 	}
 
 	mw, err := wof_writer.NewMultiWriterWithOptions(ctx, mw_opts)
 
 	if err != nil {
+		logger.Error("Failed to create multi writer.", "error", err)
 		return nil, fmt.Errorf("Failed to create multi writer, %w", err)
 	}
 
+	logger.Debug("Return multi writer.")
 	return mw, nil
 }
 
@@ -153,7 +161,11 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 
 	for _, cfg := range runtimevar_configs {
 
+		logger := slog.Default()
+		logger = logger.With("label", cfg.Label)
+		
 		if cfg.Disabled {
+			logger.Debug("Config is disabled, skipping.")
 			continue
 		}
 
@@ -164,12 +176,14 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 			for _, label := range to_exclude {
 
 				if label == cfg.Label {
+					logger.Debug("Config is flagged to exclude.")
 					exclude = true
 					break
 				}
 			}
 
 			if exclude {
+				logger.Debug("Config is flagged to exclude, skipping.")			
 				continue
 			}
 		}
@@ -182,9 +196,12 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 
 		if strings.Contains(rt_value, "{credentials}") && rt_creds != "" {
 
+			logger.Debug("Derive credentials from runtimevar.")
+			
 			creds, err := runtimevar.StringVar(runtime_ctx, rt_creds)
 
 			if err != nil {
+				logger.Error("Failed to derive credentials from runtimevar.", "error", err)
 				return nil, fmt.Errorf("Unable to resolve runtime var for %s, %w", rt_value, err)
 			}
 
@@ -195,8 +212,10 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 
 		switch rt_var {
 		case "file":
+			logger.Debug("Derive writer URI from file:// runtimevar.")
 			runtimevar_uri = fmt.Sprintf("file://%s", rt_value)
 		default:
+			logger.Debug("Derive writer URI from runtimevar URI.", "scheme", rt_var)		
 			runtimevar_uri = fmt.Sprintf("%s://?val=%s", rt_var, url.QueryEscape(rt_value))
 		}
 
@@ -207,17 +226,21 @@ func createWriters(ctx context.Context, runtimevar_configs []*RuntimevarConfig, 
 		// interpolated above.
 
 		if err != nil {
+			logger.Error("Failed to derive writer URI from runtimevar.", "error", err)
 			return nil, fmt.Errorf("Failed to derive writer URI from '%s', %w", cfg.Value, err)
 		}
 
 		wr_uri = strings.TrimSpace(wr_uri)
 
+		logger.Debug("Create new writer.")
 		wr, err := wof_writer.NewWriter(ctx, wr_uri)
 
 		if err != nil {
+			logger.Error("Failed to create writer.")
 			return nil, fmt.Errorf("Failed to create writer for '%s', %w", cfg.Value, err)
 		}
 
+		logger.Debug("Append writer.")
 		writers = append(writers, wr)
 	}
 
