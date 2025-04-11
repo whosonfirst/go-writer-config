@@ -1,4 +1,4 @@
-module github.com/whosonfirst/go-writer-config
+module github.com/whosonfirst/go-writer-config/v3
 
 go 1.24.2
 
