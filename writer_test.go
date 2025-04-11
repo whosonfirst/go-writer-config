@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	wof_writer "github.com/whosonfirst/go-writer/v3"
 	"path/filepath"
 	"testing"
+
+	wof_writer "github.com/whosonfirst/go-writer/v3"	
 )
 
 func TestConfigWriter(t *testing.T) {
