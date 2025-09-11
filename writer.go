@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sfomuseum/runtimevar"
+	"github.com/aaronland/gocloud/runtimevar"
 	"github.com/tidwall/jsonc"
 	wof_writer "github.com/whosonfirst/go-writer/v3"	
 )
